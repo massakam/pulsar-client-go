@@ -49,6 +49,7 @@ type athenzAuthProvider struct {
 	principalHeader         string
 	roleHeader              string
 	ztsURL                  string
+	ztsProxyURL             string
 	tokenBuilder            zms.TokenBuilder
 	roleToken               zts.RoleToken
 	zmsNewTokenBuilder      func(domain, name string, privateKeyPEM []byte, keyVersion string) (zms.TokenBuilder, error)
@@ -77,6 +78,7 @@ func NewAuthenticationAthenzWithParams(params map[string]string) (Provider, erro
 		params["principalHeader"],
 		params["roleHeader"],
 		params["ztsUrl"],
+		params["ztsProxyUrl"],
 	), nil
 }
 
@@ -90,7 +92,8 @@ func NewAuthenticationAthenz(
 	caCert string,
 	principalHeader string,
 	roleHeader string,
-	ztsURL string) Provider {
+	ztsURL string,
+	ztsProxyURL string) Provider {
 	fixedKeyID := defaultKeyID
 	if keyID != "" {
 		fixedKeyID = keyID
@@ -120,6 +123,7 @@ func NewAuthenticationAthenz(
 		principalHeader:         principalHeader,
 		roleHeader:              fixedRoleHeader,
 		ztsURL:                  strings.TrimSuffix(ztsURL, "/"),
+		ztsProxyURL:             ztsProxyURL,
 		zmsNewTokenBuilder:      zms.NewTokenBuilder,
 		ztsNewRoleToken:         ztsNewRoleToken,
 		ztsNewRoleTokenFromCert: ztsNewRoleTokenFromCert,
@@ -134,6 +138,7 @@ func (p *athenzAuthProvider) Init() error {
 	var roleToken zts.RoleToken
 	opts := zts.RoleTokenOptions{
 		BaseZTSURL: p.ztsURL + "/zts/v1",
+		ProxyURL:   p.ztsProxyURL,
 		MinExpire:  minExpire,
 		MaxExpire:  maxExpire,
 		AuthHeader: p.principalHeader,
